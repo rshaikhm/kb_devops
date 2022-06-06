@@ -1,0 +1,34 @@
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: aspnetapp
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/use-private-ip: "true"
+    #appgw.ingress.kubernetes.io/backend-hostname: "app1.cerberusknowledge.in"
+spec:  
+  rules:
+  # - host: app2.internal.com
+  #   http:
+  #     paths:
+  #     - path: /
+  #       backend:
+  #         serviceName: frontend
+  #         servicePort: 80        
+  # - host: app1.1cd0842a-4732-4882-b02d-5b0922de30b3.privatelink.westus2.azmk8s.io
+   - http:
+      paths:
+      - path: /app1/
+        backend:
+          serviceName: app1-nginx-clusterip-service
+          servicePort: 80
+      - path: /app2/
+        backend:
+          serviceName: app2-nginx-clusterip-service
+          servicePort: 80         
+      - path: /
+        backend:
+          serviceName: usermgmt-webapp-clusterip-service
+          servicePort: 80                   
+ 

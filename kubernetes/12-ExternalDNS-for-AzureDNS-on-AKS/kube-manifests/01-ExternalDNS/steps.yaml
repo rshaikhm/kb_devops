@@ -1,0 +1,194 @@
+Steps:
+
+az network dns zone create -g DevOps_Demo_2
+
+az aks create -n aks-cluster-demo -g DevOps_Demo_2 --enable-private-cluster --private-dns-zone /subscriptions/7d7ff3d8-b55f-43da-a27d-c240fd27568f/resourceGroups/mc_devops_demo_devops_demo-test_westus2/providers/Microsoft.Network/privateDnsZones/private-dns.com --fqdn-subdomain private-dns.com
+
+
+PAT tken : sfpksgx3ggpsoiqwaoyyw7t6lwzow3dblabohogfqywwmareh3da
+
+
+Create Cluster 
+az ad sp create-for-rbac -n azure-pipeline-cd --role owner
+az ad sp create-for-rbac -n DevOps_Demo
+c6794205-5a95-4092-b4f2-88d5ce4efeea
+dODKsCMjlDkote-UBtOmsYCyowttxV3d.x
+
+az aks create -g $ -n $(aksClusterName) --node-count 2 --network-plugin azure --enable-private-cluster --private-dns-zone /subscriptions/7d7ff3d8-b55f-43da-a27d-c240fd27568f/resourceGroups/mc_devops_demo_devops_demo-test_westus2/providers/Microsoft.Network/privateDnsZones/private-dns.com --generate-ssh-keys --service-principal $(clientId) --client-secret $(clientSecret)
+az aks create -g DevOps_Demo -n privatedns-aks-cluster-demo --node-count 2 --network-plugin azure --enable-private-cluster --private-dns-zone /subscriptions/7d7ff3d8-b55f-43da-a27d-c240fd27568f/resourceGroups/mc_devops_demo_devops_demo-test_westus2/providers/Microsoft.Network/privateDnsZones/private-dns.com --generate-ssh-keys --service-principal c6794205-5a95-4092-b4f2-88d5ce4efeea --client-secret dODKsCMjlDkote-UBtOmsYCyowttxV3d.x
+
+Create AGIC
+
+Create identity
+
+Create Deployment.
+
+
+Connect withprivate cluster:
+az feature register --namespace "Microsoft.ContainerService" --name "RunCommandPreview"
+az aks command invoke -g DevOps_Demo -n privatedns-aks-cluster-demo -c "kubectl get pods -n kube-system"
+az aks command invoke -g DevOps_Demo -n privatedns-aks-cluster-demo -c "kubectl create serviceaccount --namespace kube-system tiller-sa "
+
+az aks create --resource-group DevOps_Demo_2 --name aks-cluster-demo --enable-addons http_application_routing
+
+SP_ID=$(az aks show --resource-group DevOps_Demo --name aks-cluster-demo \
+    --query servicePrincipalProfile.clientId -o tsv)
+
+    SP_ID=$(az aks show --resource-group myResourceGroup --name myAKSCluster \
+    --query servicePrincipalProfile.clientId -o tsv)
+
+    az aks update-credentials \
+    --resource-group DevOps_Demo_2 \
+    --name aks-cluster-demo \
+    --reset-service-principal \
+    --service-principal $SP_ID \
+    --client-secret $SP_SECRET
+
+
+az aks show -g DevOps_Demo_2 -n aks-cluster-demo --query nodeResourceGroup -otsv
+export SUBSCRIPTION_ID="7d7ff3d8-b55f-43da-a27d-c240fd27568f"
+
+# login as a user and set the appropriate subscription ID
+az login
+az account set -s "${SUBSCRIPTION_ID}"
+
+export RESOURCE_GROUP="DevOps_Demo_2"
+export CLUSTER_NAME="aks-cluster-demo"
+
+# for this demo, we will be deploying a user-assigned identity to the AKS node resource group
+export IDENTITY_RESOURCE_GROUP="$(az aks show -g ${RESOURCE_GROUP} -n ${CLUSTER_NAME} --query nodeResourceGroup -otsv)"
+export IDENTITY_NAME="identity-dns"
+
+
+cat <<EOF | kubectl apply -f -
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AazureIdentityBinding
+metadata:
+  name: ${IDENTITY_NAME}-binding
+spec:
+  azureidentity: ${IDENTITY_NAME}
+  selector: ${IDENTITY_NAME}
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentity
+metadata:
+  name: ${IDENTITY_NAME}
+spec:
+  type: 0
+  resourceID: ${IDENTITY_RESOURCE_ID}
+  clientID: ${IDENTITY_CLIENT_ID}
+EOF
+
+cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demo
+  labels:
+    aadpodidbinding: $IDENTITY_NAME
+spec:
+  containers:
+  - name: demo
+    image: mcr.microsoft.com/oss/azure/aad-pod-identity/demo:v1.8.0
+    args:
+      - --subscription-id=${SUBSCRIPTION_ID}
+      - --resource-group=${IDENTITY_RESOURCE_GROUP}
+      - --identity-client-id=${IDENTITY_CLIENT_ID}
+  nodeSelector:
+    kubernetes.io/os: linux
+EOF
+
+cat << EOF | kubectl delete -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+  labels:
+    aadpodidbinding: $IDENTITY_NAME
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+      - name: external-dns
+        image: registry.opensource.zalan.do/teapot/external-dns:latest
+        args:
+        - --source=service
+        - --source=ingress
+        #- --domain-filter=example.com # (optional) limit to only example.com domains; change to match the zone created above.
+        - --provider=azure
+        #- --azure-resource-group=externaldns # (optional) use the DNS zones from the specific resource group
+        - --subscription-id=${SUBSCRIPTION_ID}
+        - --resource-group=${IDENTITY_RESOURCE_GROUP}
+        - --identity-client-id=${IDENTITY_CLIENT_ID}         
+        volumeMounts:
+        - name: azure-config-file
+          mountPath: /etc/kubernetes
+          readOnly: true
+      volumes:
+      - name: azure-config-file
+        secret:
+          secretName: azure-config-file
+EOF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+az aks command invoke -g DevOps_Demo -n privatedns-aks-cluster-demo -c "helm repo add aad-pod-identity https://raw.githubusercontent.com/Azure/aad-pod-identity/master/charts"

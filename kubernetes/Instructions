@@ -1,0 +1,138 @@
+1.Create AKS Cluster:
+    1.1Create SP For Pipeline:
+        az ad sp create-for-rbac -n azure-pipeline-cd-private --role owner
+        {
+        "appId": "2723e01c-ea46-4bd5-bf43-c6d8de1fce7a",
+        "displayName": "azure-pipeline-cd-private",
+        "name": "http://azure-pipeline-cd-private",
+        "password": "Frti~fFbPGYI8M7eB3ipPbMvbKF8YR.-za",
+        "tenant": "2d822702-3d7d-47a5-bead-efb1f94b1a2e"
+        }
+
+    1.2Create SP for AKS cluster:
+        az ad sp create-for-rbac -n internal-aks-cluster
+        {
+        "appId": "3833e00e-8ab6-4bc4-8a35-cf28182e5ad2",
+        "displayName": "private-cluster",
+        "name": "http://private-cluster",
+        "password": "2S~Htz1B2fUz~UIp0cpjnv-B6QQxM1~xyF",
+        "tenant": "2d822702-3d7d-47a5-bead-efb1f94b1a2e"
+        }
+        ============================
+        {
+  "appId": "78070903-5d10-4171-9566-59f118585b16",
+  "displayName": "internal-aks-cluster",
+  "name": "http://internal-aks-cluster",
+  "password": "PGVBIdY-v~mkgvRPSkbLyFL0g9i.2sE5UV",
+  "tenant": "2d822702-3d7d-47a5-bead-efb1f94b1a2e"
+}
+    1.3 Create Linux Agent for Deployment.
+        wget https://vstsagentpackage.azureedge.net/agent/2.186.1/vsts-agent-linux-x64-2.186.1.tar.gz
+        ls -lrt
+        ~/$ mkdir myagent && cd myagent
+        mkdir myagent && cd myagent
+        tar zxvf ~/vsts-agent-linux-x64-2.186.1.tar.gz
+        ./config.sh [fill in the details]
+        ./bin/installdependencies.sh
+        sudo ./bin/installdependencies.sh
+        ./run.sh
+        sudo apt-get install -y apt-transport-https ca-certificates curl
+        sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+        sudo apt-get update
+        sudo apt-get install -y kubectl
+        ****Make Vnet Peering ass per design.****
+    1.4 Run DevOps Pipeline.
+        User created SP and linux VM as Agents.
+
+2. Connect to private AKS cluster.
+    2.1 from local machine not in Vnet:
+        az feature register --namespace "Microsoft.ContainerService" --name "RunCommandPreview"
+    2.2 from VM in Vnet:
+        az login
+        az get credentials -g "" -n ""
+        
+
+
+
+
+Path-Based-Routing>
+
+
+az aks command invoke -g devOps_Demo -n private-cluster -c "kubectl create secret generic azure-config-file --from-file=azure.json" -f.
+
+az aks command invoke -g devOps_Demo -n private-cluster -c "kubectl apply -f external-dns.yml" -f.
+
+
+
+
+
+
+az ad sp create-for-rbac -n private_cluster
+{
+  "appId": "dd4b6f2d-5a7a-4c0f-9d2c-f7a59365ed15",
+  "displayName": "private_cluster",
+  "name": "http://private_cluster",
+  "password": "94u79u~z8cQ49WfUTOuKSSmKj-VpKE-mJU",
+  "tenant": "2d822702-3d7d-47a5-bead-efb1f94b1a2e"
+}
+
+az ad sp create-for-rbac -n private-cluster
+{
+  "appId": "3833e00e-8ab6-4bc4-8a35-cf28182e5ad2",
+  "displayName": "private-cluster",
+  "name": "http://private-cluster",
+  "password": "2S~Htz1B2fUz~UIp0cpjnv-B6QQxM1~xyF",
+  "tenant": "2d822702-3d7d-47a5-bead-efb1f94b1a2e"
+}
+
+
+wget https://vstsagentpackage.azureedge.net/agent/2.186.1/vsts-agent-linux-x64-2.186.1.tar.gz
+
+Run AKS Deployment Script.
+
+
+--enable-private-cluster --enable-managed-identity --assign-identity <ResourceId> --private-dns-zone [system|none]
+
+--enable-private-cluster --enable-managed-identity --assign-identity <ResourceId> --private-dns-zone [system|none]
+
+az aks create -g $(aksClusterGroupName) -n $(aksClusterName) --node-count 2 --network-plugin azure --enable-private-cluster --private-dns-zone  --generate-ssh-keys --service-principal $(clientId) --client-secret $(clientSecret)
+
+az aks command invoke -g devOps_Demo -n private-cluster -c "kubectl apply -R -f kubemanifest/ -n default" -f .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

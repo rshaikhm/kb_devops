@@ -1,0 +1,8 @@
+{
+  "tenantId": "2d822702-3d7d-47a5-bead-efb1f94b1a2e",
+  "subscriptionId": "7d7ff3d8-b55f-43da-a27d-c240fd27568f",
+  "resourceGroup": "MC_DevOps_Demo_private-cluster_westus2",
+  "useManagedIdentityExtension": true,
+  "userAssignedIdentityID": "2723e01c-ea46-4bd5-bf43-c6d8de1fce7a"
+  
+}

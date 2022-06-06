@@ -1,0 +1,62 @@
+# apiVersion: networking.istio.io/v1alpha3
+# kind: Gateway
+# metadata:
+#   name: ingress-gateway-app1
+# spec:
+#   selector:
+#     istio: ingressgateway # use Istio custom gateway implementation
+#   servers:
+#   - port:
+#       number: 80
+#       name: http
+#       protocol: HTTP
+#     hosts:
+#     - "*"   # Domain name of the external website
+# ---
+# kind: VirtualService
+# apiVersion: networking.istio.io/v1alpha3
+# metadata:
+#   name: usermgmt-webapp
+#   namespace: default
+# spec:
+#   hosts:      # which incoming host are we applying the proxy rules to???
+#     - "*"
+#   gateways:
+#     - ingress-gateway-app1
+#   http:
+#     - match:
+#       - uri:  # OR
+#           prefix: "/app2/"
+#       route: # THEN
+#       - destination:
+#           host: app2-nginx-clusterip-service  
+#     - match:
+#       - uri :
+#           prefix: "/app1/"
+#       route:
+#       - destination:
+#           host: app1-nginx-clusterip-service 
+          
+#     - match:
+#       - uri :
+#           prefix: "/"
+#       route:
+#       - destination:
+#           host: usermgmt-webapp-clusterip-service 
+# ---
+# # kubectl apply -f - <<EOF
+# apiVersion: security.istio.io/v1beta1
+# kind: AuthorizationPolicy
+# metadata:
+#   name: ingress-policy
+#   namespace: istio-system
+# spec:
+#   selector:
+#     matchLabels:
+#       app: istio-ingressgateway
+#   action: ALLOW
+#   rules:
+#   - from:
+#     - source:
+#         ipBlocks: ["10.0.0.0/8", "172.16.0.0/16", ]
+# # EOF
